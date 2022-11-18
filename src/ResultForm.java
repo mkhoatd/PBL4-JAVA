@@ -1,19 +1,22 @@
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ResultForm {
     private JPanel mainPanel;
     private GraphicPanel graphicPanel;
+    private JPanel tablePanel;
     private Table table;
 
     public ResultForm(Table table) {
+        this.table = table;
         JFrame frame = new JFrame("Result");
         $$$setupUI$$$();
         frame.setContentPane(this.mainPanel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
-        this.table = table;
     }
 
     /**
@@ -27,12 +30,21 @@ public class ResultForm {
         createUIComponents();
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setPreferredSize(new Dimension(200, 200));
+        mainPanel.setPreferredSize(new Dimension(800, 400));
+        graphicPanel.setMinimumSize(new Dimension(200, 200));
+        graphicPanel.setPreferredSize(new Dimension(330, 330));
         GridBagConstraints gbc;
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         mainPanel.add(graphicPanel, gbc);
+        tablePanel.setOpaque(true);
+        tablePanel.setPreferredSize(new Dimension(330, 330));
+        gbc = new GridBagConstraints();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(tablePanel, gbc);
     }
 
     /**
@@ -45,5 +57,26 @@ public class ResultForm {
     private void createUIComponents() {
         // TODO: place custom component creation code here
         graphicPanel = new GraphicPanel(table);
+        var n = this.table.routes.size();
+        var data = new String[n][1];
+        for (int i = 0; i < n; i++) {
+            var route = this.table.routes.get(i);
+            var ld = this.table.Ld.get(i);
+            var name = route + ": " + ld;
+            data[i][0] = name;
+        }
+        var columns = new String[]{""};
+        var table = new JTable(data, columns);
+        table.setPreferredSize(new Dimension(330, 300));
+        tablePanel = new JPanel();
+        tablePanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "Luồng lưu thông (gói/s)", TitledBorder.CENTER,
+                TitledBorder.TOP));
+        var scrollPanel = new JScrollPane(table);
+        scrollPanel.setPreferredSize(new Dimension(330, 300));
+        tablePanel.add(scrollPanel);
+//        tablePanel.setPreferredSize(new Dimension(200, 330));
+//        var model = new DefaultTableModel()
+
     }
 }

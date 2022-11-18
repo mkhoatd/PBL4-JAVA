@@ -25,8 +25,8 @@ import javax.swing.table.JTableHeader;
 
 public class client extends JFrame implements ActionListener {
 
-    public static InputStreamWrapper dis;
-    public static OutputStreamWrapper dos;
+    public static DataInputStream dis;
+    public static DataOutputStream dos;
     public static Socket socket;
     public static int localPort;
 
@@ -54,6 +54,18 @@ public class client extends JFrame implements ActionListener {
         panel1.add(lb1);
         panel1.add(iPTextbox);
         mainPanel.add(panel1);
+
+        var lb10=new JLabel("Server Address");
+        lb10.setPreferredSize(new Dimension(100, 20));
+        var serverAddressTextField=new JTextField(20);
+        serverAddressTextField.setText("127.0.0.1");
+        var serverPortTextField=new JTextField(15);
+        serverPortTextField.setText("7000");
+        var panel10=new JPanel();
+        panel10.add(lb10);
+        panel10.add(serverAddressTextField);
+        panel10.add(serverPortTextField);
+        mainPanel.add(panel10);
 
         JPanel panel2 = new JPanel();
         connectButton = new JButton("Connect");
@@ -154,7 +166,7 @@ public class client extends JFrame implements ActionListener {
 
         String note = "Bang phan tich mang con su dung kich thuoc trung binh cua goi la " + sizeOfPack + " bits ";
 
-        var resultTable = new Table(routes, Ld, C, mC, weights, note);
+        var resultTable = new Table(characters,routes, Ld, C, mC, weights, note);
 
     }
 
@@ -165,8 +177,8 @@ public class client extends JFrame implements ActionListener {
 
         new client();
 
-        dos = new OutputStreamWrapper(socket.getOutputStream());
-        dis = new InputStreamWrapper(socket.getInputStream());
+        dos = new DataOutputStream(socket.getOutputStream());
+        dis = new DataInputStream(socket.getInputStream());
 
         while (true) {
             String newText = dis.readUTF();
@@ -208,7 +220,7 @@ public class client extends JFrame implements ActionListener {
 
 class Table extends JFrame implements ActionListener {
     public String[] columnNames;
-    public List<String> nodes=new ArrayList<String>();
+    public String[] nodes;
     public List<String> routes = new ArrayList<String>();
     public List<Integer> Ld = new ArrayList<Integer>();
     public List<Double> C = new ArrayList<Double>();
@@ -223,7 +235,8 @@ class Table extends JFrame implements ActionListener {
     public JButton cancelButton;
 
 
-    public Table(List<String> routes, List<Integer> Ld, List<Double> C, List<Double> mC, List<Double> weights, String note) {
+    public Table(String[] nodes,List<String> routes, List<Integer> Ld, List<Double> C, List<Double> mC, List<Double> weights, String note) {
+        this.nodes=nodes;
         columnNames = new String[]{"STT", "Line", "Ld", "C", "mC", "Weight"};
         this.routes = routes;
         this.Ld = Ld;
@@ -244,6 +257,8 @@ class Table extends JFrame implements ActionListener {
         }
 
         initFrame();
+        resultsButton.addActionListener(e-> new ResultForm(this));
+
     }
 
     public void initFrame() {
@@ -272,7 +287,6 @@ class Table extends JFrame implements ActionListener {
         resultsButton = new JButton("Result");
         tableButton = new JButton("Table");
         cancelButton = new JButton("Cancel");
-        resultsButton.addActionListener(e-> new ResultForm(this));
 
         buttonPanel.add(resultsButton);
         buttonPanel.add(tableButton);

@@ -1,4 +1,5 @@
 import java.awt.Dimension;
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -14,11 +15,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 class clientHandler extends Thread {
-    public OutputStreamWrapper dos;
-    public InputStreamWrapper dis;
+    public DataOutputStream dos;
+    public DataInputStream dis;
     public Socket socket;
 
-    public clientHandler(Socket socket, InputStreamWrapper dis, OutputStreamWrapper dos) {
+    public clientHandler(Socket socket, DataInputStream dis, DataOutputStream dos) {
         this.socket = socket;
         this.dis = dis;
         this.dos = dos;
@@ -111,8 +112,8 @@ public class server extends JFrame {
             String acceptMessage = socket.getPort() + " connected!\n";
             console.append(acceptMessage);
 
-            var dis = new InputStreamWrapper(socket.getInputStream());
-            var dos = new OutputStreamWrapper(socket.getOutputStream());
+            var dis = new DataInputStream(socket.getInputStream());
+            var dos = new DataOutputStream(socket.getOutputStream());
 
 
             sendMessageToAll(acceptMessage);
