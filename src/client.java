@@ -4,10 +4,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.net.Inet4Address;
 import java.net.Socket;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,18 +22,21 @@ import javax.swing.table.JTableHeader;
 
 public class client extends JFrame implements ActionListener {
 
-    public static DataInputStream dis;
-    public static DataOutputStream dos;
-    public static Socket socket;
-    public static int localPort;
+    public DataInputStream dis;
+    public DataOutputStream dos;
+    public Socket socket;
+    public int localPort;
 
-    public static JTextField iPTextbox;
-    public static JButton connectButton;
-    public static JTextField portTextbox;
-    public static JTextField fileTextbox;
-    public static JButton sendButton;
-    public static JButton broadcastButton;
-    public static JTextArea console;
+    public JTextField iPTextbox;
+    public JTextField serverAddressTextField;
+    public JTextField serverPortTextField;
+    public JButton connectButton;
+    public JTextField portTextField;
+    public JTextField addressTextField;
+    public JTextField fileTextbox;
+    public JButton sendButton;
+    public JButton broadcastButton;
+    public JTextArea console;
 
     public client() {
         this.setTitle("This is client");
@@ -57,9 +57,9 @@ public class client extends JFrame implements ActionListener {
 
         var lb10=new JLabel("Server Address");
         lb10.setPreferredSize(new Dimension(100, 20));
-        var serverAddressTextField=new JTextField(20);
+        serverAddressTextField=new JTextField(20);
         serverAddressTextField.setText("127.0.0.1");
-        var serverPortTextField=new JTextField(15);
+        serverPortTextField=new JTextField(15);
         serverPortTextField.setText("7000");
         var panel10=new JPanel();
         panel10.add(lb10);
@@ -73,11 +73,14 @@ public class client extends JFrame implements ActionListener {
         mainPanel.add(panel2);
 
         JPanel panel3 = new JPanel();
-        JLabel lb2 = new JLabel("Port: ");
+        JLabel lb2 = new JLabel("Send Address: ");
         lb2.setPreferredSize(new Dimension(100, 20));
-        portTextbox = new JTextField(35);
+        portTextField = new JTextField(15);
+        addressTextField=new JTextField(20);
+        addressTextField.setText("127.0.0.1");
         panel3.add(lb2);
-        panel3.add(portTextbox);
+        panel3.add(addressTextField);
+        panel3.add(portTextField);
         mainPanel.add(panel3);
 
         JPanel panel4 = new JPanel();
@@ -112,7 +115,7 @@ public class client extends JFrame implements ActionListener {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
-    public static String readFile(String filePath) throws IOException {
+    public String readFile(String filePath) throws IOException {
         File file = new File(filePath);
         BufferedReader br = new BufferedReader(new FileReader(file));
         String res = "", st;
@@ -123,7 +126,7 @@ public class client extends JFrame implements ActionListener {
         return res;
     }
 
-    public static void processTable(String text) {
+    public void processTable(String text) {
         String[] lines = text.split("\n");
         if (lines[0].trim().split(" ").length > 1) {
             console.append(text);
@@ -172,34 +175,47 @@ public class client extends JFrame implements ActionListener {
 
     public static void main(String[] args) throws IOException {
         System.setProperty("org.graphstream.ui", "swing");
-        socket = new Socket(Inet4Address.getLocalHost().getHostAddress(), 7000);
-        localPort = socket.getLocalPort();
-
         new client();
 
-        dos = new DataOutputStream(socket.getOutputStream());
-        dis = new DataInputStream(socket.getInputStream());
+//        socket = new Socket(Inet4Address.getLocalHost().getHostAddress(), 7000);
+//        localPort = socket.getLocalPort();
 
-        while (true) {
-            String newText = dis.readUTF();
-            processTable(newText);
-//			console.append(newText);
-        }
+
+//        dos = new DataOutputStream(socket.getOutputStream());
+//        dis = new DataInputStream(socket.getInputStream());
+
+//        while (true) {
+//            String newText = dis.readUTF();
+//            processTable(newText);
+////			console.append(newText);
+//        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if ((JButton) e.getSource() == connectButton) {
+        if (e.getSource() == connectButton) {
+            try {
+                socket = new Socket(serverAddressTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
+                dos=new DataOutputStream(socket.getOutputStream());
+                dis=new DataInputStream(socket.getInputStream());
+                localPort=socket.getLocalPort();
+                new ClientRunner(this).start();
+
+            } catch (Exception ex){
+                ex.printStackTrace();
+            }
 
         } else {
-            String text = null;
+            String portText = null;
+            String addressText="127.0.0.1";
             String res = null;
 
             // check event
             if ((JButton) e.getSource() == sendButton) {
-                text = portTextbox.getText();
-            } else if ((JButton) e.getSource() == broadcastButton) {
-                text = "All";
+                portText = portTextField.getText();
+                addressText=addressTextField.getText();
+            } else if (e.getSource() == broadcastButton) {
+                portText = "All";
             }
 
             // create file path
@@ -208,7 +224,7 @@ public class client extends JFrame implements ActionListener {
             try {
                 // read file
                 res = readFile(filePath);
-                res = text + "\n" + res;
+                res = portText + "\n"+"/" + addressText + "\n" + res;
                 // send
                 dos.writeUTF(res);
             } catch (IOException e1) {
