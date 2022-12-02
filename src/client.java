@@ -4,6 +4,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,10 @@ public class client extends JFrame implements ActionListener {
     public DataInputStream dis;
     public DataOutputStream dos;
     public Socket socket;
-    public int localPort;
+    public InetAddress localAddress;
+    public Integer localPort = 0;
 
-    public JTextField iPTextbox;
+    public JTextField localPortTextField;
     public JTextField serverAddressTextField;
     public JTextField serverPortTextField;
     public JButton connectButton;
@@ -49,10 +51,11 @@ public class client extends JFrame implements ActionListener {
         JPanel panel1 = new JPanel();
         JLabel lb1 = new JLabel("My Local Port: ");
         lb1.setPreferredSize(new Dimension(100, 20));
-        iPTextbox = new JTextField(35);
-        iPTextbox.setText(localPort + "");
+        localPortTextField = new JTextField(35);
+        localPortTextField.setEnabled(false);
+        localPortTextField.setText(localPort + "");
         panel1.add(lb1);
-        panel1.add(iPTextbox);
+        panel1.add(localPortTextField);
         mainPanel.add(panel1);
 
         var lb10=new JLabel("Server Address");
@@ -176,19 +179,6 @@ public class client extends JFrame implements ActionListener {
     public static void main(String[] args) throws IOException {
         System.setProperty("org.graphstream.ui", "swing");
         new client();
-
-//        socket = new Socket(Inet4Address.getLocalHost().getHostAddress(), 7000);
-//        localPort = socket.getLocalPort();
-
-
-//        dos = new DataOutputStream(socket.getOutputStream());
-//        dis = new DataInputStream(socket.getInputStream());
-
-//        while (true) {
-//            String newText = dis.readUTF();
-//            processTable(newText);
-////			console.append(newText);
-//        }
     }
 
     @Override
@@ -199,6 +189,7 @@ public class client extends JFrame implements ActionListener {
                 dos=new DataOutputStream(socket.getOutputStream());
                 dis=new DataInputStream(socket.getInputStream());
                 localPort=socket.getLocalPort();
+                localPortTextField.setText(String.valueOf(localPort));
                 new ClientRunner(this).start();
 
             } catch (Exception ex){
@@ -224,7 +215,7 @@ public class client extends JFrame implements ActionListener {
             try {
                 // read file
                 res = readFile(filePath);
-                res = portText + "\n"+"/" + addressText + "\n" + res;
+                res = portText + "\n" + addressText + "\n" + res;
                 // send
                 dos.writeUTF(res);
             } catch (IOException e1) {
@@ -289,7 +280,6 @@ class Table extends JFrame implements ActionListener {
         DefaultTableModel model = new DefaultTableModel(data, columnNames);
         table = new JTable(model);
 
-
         JTableHeader header = table.getTableHeader();
         header.setBackground(Color.yellow);
         JScrollPane pane = new JScrollPane(table);
@@ -301,11 +291,9 @@ class Table extends JFrame implements ActionListener {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         resultsButton = new JButton("Result");
-        tableButton = new JButton("Table");
         cancelButton = new JButton("Cancel");
 
         buttonPanel.add(resultsButton);
-        buttonPanel.add(tableButton);
         buttonPanel.add(cancelButton);
 
         mainPanel.add(buttonPanel);
@@ -313,7 +301,6 @@ class Table extends JFrame implements ActionListener {
         this.add(mainPanel);
         this.pack();
         this.setVisible(true);
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     @Override

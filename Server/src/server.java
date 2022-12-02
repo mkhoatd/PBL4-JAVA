@@ -120,7 +120,7 @@ public class server extends JFrame {
             dos.writeUTF(isConnected);
             clientHandler th = new clientHandler(socket, dis, dos);
             clientPorts.add(socket.getPort());
-            clientAddresses.add(socket.getInetAddress().toString());
+            clientAddresses.add(socket.getInetAddress().getHostAddress());
             setOfClients.add(th);
             th.start();
         }

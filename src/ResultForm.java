@@ -14,7 +14,6 @@ public class ResultForm {
         JFrame frame = new JFrame("Result");
         $$$setupUI$$$();
         frame.setContentPane(this.mainPanel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
     }
