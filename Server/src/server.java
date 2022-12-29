@@ -3,6 +3,7 @@ import java.awt.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -12,11 +13,15 @@ class clientHandler extends Thread {
     public DataOutputStream dos;
     public DataInputStream dis;
     public Socket socket;
+    public int clientPort;
+    public String clientAddress;
 
     public clientHandler(Socket socket, DataInputStream dis, DataOutputStream dos) {
         this.socket = socket;
         this.dis = dis;
         this.dos = dos;
+        this.clientPort = socket.getPort();
+        this.clientAddress = socket.getInetAddress().toString();
     }
 
     public void run() {
@@ -36,8 +41,8 @@ class clientHandler extends Thread {
                     int portToSend = Integer.parseInt(texts[0]);
                     var addressToSend = texts[1];
                     System.out.println(portToSend);
-                    List<Integer> ports = new ArrayList<Integer>();
-                    List<String> addresses = new ArrayList<String>();
+                    List<Integer> ports = new ArrayList<>();
+                    List<String> addresses = new ArrayList<>();
                     ports.add(portToSend);
                     addresses.add(addressToSend);
                     server.sendMessageToSomeone(content.toString(), addresses, ports);
@@ -45,7 +50,9 @@ class clientHandler extends Thread {
                 String message = socket.getPort() + " send something!\n";
                 server.updateConsole(message);
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
+                server.updateConsole(this.clientAddress + ": " + this.clientPort + " is disconnected");
+                break;
             }
         }
     }

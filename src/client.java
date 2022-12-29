@@ -9,19 +9,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-public class client extends JFrame implements ActionListener {
+class ClientConnect extends JFrame implements ActionListener {
 
     public DataInputStream dis;
     public DataOutputStream dos;
@@ -29,19 +21,16 @@ public class client extends JFrame implements ActionListener {
     public InetAddress localAddress;
     public Integer localPort = 0;
 
-    public JTextField localPortTextField;
+    public JRadioButton r1;
+    public JRadioButton r2;
+
     public JTextField serverAddressTextField;
     public JTextField serverPortTextField;
+    public JTextField localPortTextField;
     public JButton connectButton;
-    public JTextField portTextField;
-    public JTextField addressTextField;
-    public JTextField fileTextbox;
-    public JButton sendButton;
-    public JButton broadcastButton;
-    public JTextArea console;
 
-    public client() {
-        this.setTitle("This is client");
+    public ClientConnect() {
+        this.setTitle("Client Connect");
         this.setSize(400, 400);
         this.setLayout(new FlowLayout());
 
@@ -49,7 +38,7 @@ public class client extends JFrame implements ActionListener {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         JPanel panel1 = new JPanel();
-        JLabel lb1 = new JLabel("My Local Port: ");
+        JLabel lb1 = new JLabel("Local port: ");
         lb1.setPreferredSize(new Dimension(100, 20));
         localPortTextField = new JTextField(35);
         localPortTextField.setEnabled(false);
@@ -62,7 +51,7 @@ public class client extends JFrame implements ActionListener {
         lb10.setPreferredSize(new Dimension(100, 20));
         serverAddressTextField=new JTextField(20);
         serverAddressTextField.setText("127.0.0.1");
-        serverPortTextField=new JTextField(15);
+        serverPortTextField=new JTextField(14);
         serverPortTextField.setText("7000");
         var panel10=new JPanel();
         panel10.add(lb10);
@@ -70,16 +59,97 @@ public class client extends JFrame implements ActionListener {
         panel10.add(serverPortTextField);
         mainPanel.add(panel10);
 
+
         JPanel panel2 = new JPanel();
         connectButton = new JButton("Connect");
         panel2.add(connectButton);
         mainPanel.add(panel2);
 
+        connectButton.addActionListener(this);
+
+        this.add(mainPanel);
+        this.pack();
+        this.setVisible(true);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+//		int mode;
+//		if (r1.isSelected()) {
+//			mode = 0;
+//		} else {
+//			mode = 1;
+//		}
+        client c = new client(serverAddressTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
+        this.setVisible(false);
+    }
+}
+
+public class client extends JFrame implements ActionListener {
+
+    public Socket socket;
+    public DataInputStream dis;
+    public DataOutputStream dos;
+    public int mode;
+    public InetAddress localAddress;
+    public Integer localPort = 0;
+
+    public JTextField localPortTextField;
+    public JButton connectButton;
+    public JTextField portTextField;
+    public JTextField addressTextField;
+    public JTextField fileTextbox;
+    public JFileChooser fileChooser;
+    public JButton fileButton;
+    public JButton sendButton;
+    public JButton broadcastButton;
+    public JRadioButton r1;
+    public JRadioButton r2;
+    public JButton modeButton;
+    public JTextArea console;
+
+    public client(String serverAddress, int serverPort) {
+        try {
+            socket = new Socket(serverAddress, serverPort);
+            dos = new DataOutputStream(socket.getOutputStream());
+            dis = new DataInputStream(socket.getInputStream());
+            this.localPort = socket.getLocalPort();
+//	        this.mode = mode;
+            this.localPort = socket.getLocalPort();
+            this.localAddress = socket.getInetAddress();
+
+            var message = dis.readUTF();
+            if (message.equals("123456")){
+                this.console.setText("Connected to server");
+            }
+            new ClientRunner(this).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        this.setTitle("This is client");
+        this.setSize(400, 400);
+        this.setLayout(new FlowLayout());
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
+        JPanel panel1 = new JPanel();
+        JLabel lb12 = new JLabel("Local port: ");
+        lb12.setPreferredSize(new Dimension(100, 20));
+        localPortTextField = new JTextField(35);
+        localPortTextField.setEnabled(false);
+        localPortTextField.setText(localPort + "");
+        panel1.add(lb12);
+        panel1.add(localPortTextField);
+        mainPanel.add(panel1);
+
         JPanel panel3 = new JPanel();
-        JLabel lb2 = new JLabel("Send Address: ");
+        JLabel lb2 = new JLabel("Destination: ");
         lb2.setPreferredSize(new Dimension(100, 20));
-        portTextField = new JTextField(15);
-        addressTextField=new JTextField(20);
+        portTextField = new JTextField(14);
+        addressTextField = new JTextField(20);
         addressTextField.setText("127.0.0.1");
         panel3.add(lb2);
         panel3.add(addressTextField);
@@ -87,11 +157,16 @@ public class client extends JFrame implements ActionListener {
         mainPanel.add(panel3);
 
         JPanel panel4 = new JPanel();
-        JLabel lb3 = new JLabel("Folder: ");
+        JLabel lb3 = new JLabel("File: ");
         lb3.setPreferredSize(new Dimension(100, 20));
-        fileTextbox = new JTextField(35);
+        fileTextbox = new JTextField(24);
+        fileChooser = new JFileChooser("./");
+        fileButton = new JButton("Choose File");
+//        fileButton.setPreferredSize(new Dimension(0, 20));
         panel4.add(lb3);
+//        panel4.add(fileChooser);
         panel4.add(fileTextbox);
+        panel4.add(fileButton);
         mainPanel.add(panel4);
 
         JPanel panel5 = new JPanel();
@@ -107,10 +182,9 @@ public class client extends JFrame implements ActionListener {
         mainPanel.add(lb4);
         mainPanel.add(console);
 
-
-        connectButton.addActionListener(this);
         sendButton.addActionListener(this);
         broadcastButton.addActionListener(this);
+        fileButton.addActionListener(this);
 
         this.add(mainPanel);
         this.pack();
@@ -144,8 +218,8 @@ public class client extends JFrame implements ActionListener {
             String[] line = lines[i + 2].trim().split(" ");
             String[] line2 = lines[i + n + 2].trim().split(" ");
             for (int j = 0; j < n; j++) {
-                baseFlowMatrix[i][j] = Integer.valueOf(line[j]);
-                capacityMatrix[i][j] = Double.valueOf(line2[j]);
+                baseFlowMatrix[i][j] = Integer.parseInt(line[j]);
+                capacityMatrix[i][j] = Double.parseDouble(line2[j]);
             }
         }
         List<String> routes = new ArrayList<String>();
@@ -178,25 +252,20 @@ public class client extends JFrame implements ActionListener {
 
     public static void main(String[] args) throws IOException {
         System.setProperty("org.graphstream.ui", "swing");
-        new client();
+        new ClientConnect();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == connectButton) {
-            try {
-                socket = new Socket(serverAddressTextField.getText(), Integer.parseInt(serverPortTextField.getText()));
-                dos=new DataOutputStream(socket.getOutputStream());
-                dis=new DataInputStream(socket.getInputStream());
-                localPort=socket.getLocalPort();
-                localPortTextField.setText(String.valueOf(localPort));
-                new ClientRunner(this).start();
-
-            } catch (Exception ex){
-                ex.printStackTrace();
+        if ((JButton) e.getSource() == fileButton) {
+            JFileChooser fc = new JFileChooser("./");
+            int x = fc.showDialog(this, "Choose File");
+            if (x == JFileChooser.APPROVE_OPTION) {
+                String path = fc.getSelectedFile().getAbsolutePath();
+                fileTextbox.setText(path);
             }
-
         } else {
+
             String portText = null;
             String addressText="127.0.0.1";
             String res = null;
@@ -211,7 +280,7 @@ public class client extends JFrame implements ActionListener {
 
             // create file path
             String filePath = fileTextbox.getText();
-            filePath = "./" + filePath;
+//            filePath = "./src/final_pbl4/" + filePath;
             try {
                 // read file
                 res = readFile(filePath);
